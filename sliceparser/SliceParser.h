@@ -1,14 +1,16 @@
 /* -*- mode: c++; coding: utf-8 -*- */
 
 #include <Slice/Parser.h>
+#include <ec/PyHandle.h>
 
 namespace SliceParser {
 
     class Visitor : public Slice::ParserVisitor {
+    public:
 	// ~ParserVisitor() { }
 	// bool visitUnitStart(const UnitPtr&);
 	// void visitUnitEnd(const UnitPtr&);
-	// bool visitModuleStart(const ModulePtr&);
+	bool visitModuleStart(const Slice::ModulePtr&);
 	// void visitModuleEnd(const ModulePtr&);
 	// void visitClassDecl(const ClassDeclPtr&);
 	// bool visitClassDefStart(const ClassDefPtr&);
@@ -27,7 +29,9 @@ namespace SliceParser {
     };
 
     class Parser {
-	void accept(Visitor& v);
+    public:
+	Parser(std::string filename);
+	void accept(PyObject*);
     };
 
 }
