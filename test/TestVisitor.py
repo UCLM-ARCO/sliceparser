@@ -6,13 +6,15 @@ from doublex import Spy, assert_that, called
 import sliceparser as sp
 
 
-class Source(object):
-    def __init__(self, contents):
+class TempFile(object):
+    def __init__(self, contents, suffix=""):
         self.contents = contents
+        self.suffix = suffix
 
     def __enter__(self):
-        self.file = tempfile.NamedTemporaryFile()
+        self.file = tempfile.NamedTemporaryFile(suffix=self.suffix)
         self.file.write(self.contents)
+        self.file.flush()
         return self.file
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -21,13 +23,11 @@ class Source(object):
 
 class TestVisitor:
     def test_visit_module(self):
-        visitor = sp.Visitor()
-        parser = sp.Parser("")
-        parser.accept(visitor)
+        visitor = Spy(sp.Visitor)
 
-        # with Source("module Test {};") as src:
-        #     parser = sp.Parser(src.name)
-        #     parser.accept(visitor)
+        with TempFile("module Test {};", suffix=".ice") as src:
+            parser = sp.Parser(src.name)
+            parser.accept(visitor)
 
-        # assert_that(visitor.visitModuleStart,
-        #             called().with_args(sp.Module('Test')))
+        assert_that(visitor.visitModuleStart,
+                    called().with_args(sp.Module('Test')))

@@ -6,7 +6,7 @@ from distutils.core import setup, Extension
 sliceParser = Extension(
     'SliceParser',
     sources = ['sliceparser/SliceParser.cpp'],
-    libraries = ['boost_python'],
+    libraries = ['boost_python', 'Slice'],
 )
 
 setup(
