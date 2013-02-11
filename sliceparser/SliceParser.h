@@ -1,37 +1,32 @@
 /* -*- mode: c++; coding: utf-8 -*- */
 
 #include <Slice/Parser.h>
-#include <ec/PyHandle.h>
 #include <boost/shared_ptr.hpp>
 
 namespace SliceParser {
 
     class Visitor : public Slice::ParserVisitor {
     public:
-	Visitor(ec::py::PyObjectPtr py_visitor);
-	// ~ParserVisitor() { }
+	Visitor(boost::python::object pyVisitor);
 
-	bool visitUnitStart(const Slice::UnitPtr&);
-	void visitUnitEnd(const Slice::UnitPtr&);
 	bool visitModuleStart(const Slice::ModulePtr&);
-	// void visitModuleEnd(const ModulePtr&);
-	// void visitClassDecl(const ClassDeclPtr&);
-	// bool visitClassDefStart(const ClassDefPtr&);
-	// void visitClassDefEnd(const ClassDefPtr&);
-	// bool visitExceptionStart(const ExceptionPtr&);
-	// void visitExceptionEnd(const ExceptionPtr&);
-	// bool visitStructStart(const StructPtr&);
-	// void visitStructEnd(const StructPtr&);
-	// void visitOperation(const OperationPtr&);
-	// void visitParamDecl(const ParamDeclPtr&);
-	// void visitDataMember(const DataMemberPtr&);
-	// void visitSequence(const SequencePtr&);
-	// void visitDictionary(const DictionaryPtr&);
-	// void visitEnum(const EnumPtr&);
-	// void visitConst(const ConstPtr&);
+	void visitModuleEnd(const Slice::ModulePtr&);
+	bool visitClassDefStart(const Slice::ClassDefPtr&);
+	void visitClassDefEnd(const Slice::ClassDefPtr&);
+	// bool visitExceptionStart(const Slice::ExceptionPtr&);
+	// void visitExceptionEnd(const Slice::ExceptionPtr&);
+	// bool visitStructStart(const Slice::StructPtr&);
+	// void visitStructEnd(const Slice::StructPtr&);
+	// void visitOperation(const Slice::OperationPtr&);
+	// void visitParamDecl(const Slice::ParamDeclPtr&);
+	// void visitDataMember(const Slice::DataMemberPtr&);
+	// void visitSequence(const Slice::SequencePtr&);
+	// void visitDictionary(const Slice::DictionaryPtr&);
+	// void visitEnum(const Slice::EnumPtr&);
+	// void visitConst(const Slice::ConstPtr&);
 
     private:
-	ec::py::PyObjectPtr _pyVisitor;
+	boost::python::object _pyVisitor;
     };
 
     typedef boost::shared_ptr<Visitor> VisitorPtr;
@@ -39,7 +34,7 @@ namespace SliceParser {
     class Parser {
     public:
 	Parser(std::string filename);
-	void accept(PyObject*);
+	void accept(boost::python::object);
 
     private:
 	std::string _filename;

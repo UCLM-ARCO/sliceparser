@@ -2,10 +2,10 @@
 
 #include <Slice/Preprocessor.h>
 #include <boost/python.hpp>
-#include <ec/PyFunctions.h>
 
 #include "SliceParser.h"
 
+namespace py = boost::python;
 
 namespace SliceParser {
 
@@ -14,7 +14,7 @@ Parser::Parser(std::string filename) :
 }
 
 void
-Parser::accept(PyObject* py_visitor) {
+Parser::accept(py::object py_visitor) {
     VisitorPtr visitor(new Visitor(py_visitor));
 
     std::string path = "";
@@ -42,33 +42,73 @@ Parser::accept(PyObject* py_visitor) {
     unit->visit(visitor.get(), true);
 }
 
-Visitor::Visitor(ec::py::PyObjectPtr pyVisitor) :
+Visitor::Visitor(py::object pyVisitor) :
     _pyVisitor(pyVisitor) {
 }
 
 bool
-Visitor::visitUnitStart(const Slice::UnitPtr&) {
-    // ec::py::PyObjectPtr result = callMethod(_pyVisitor, "visitUnitStart", args);
-    // return getAsBool(result);
+Visitor::visitModuleStart(const Slice::ModulePtr& module) {
+    return _pyVisitor.attr("visitModuleStart")(module.get());
 }
 
 void
-Visitor::visitUnitEnd(const Slice::UnitPtr&) {
-    std::cout << "C++ call of visitUnitEnd" << std::endl;
+Visitor::visitModuleEnd(const Slice::ModulePtr& module) {
+    _pyVisitor.attr("visitModuleEnd")(module.get());
 }
 
 bool
-Visitor::visitModuleStart(const Slice::ModulePtr&) {
-    std::cout << "C++ call of visitModuleStart" << std::endl;
-    return true;
+Visitor::visitClassDefStart(const Slice::ClassDefPtr& classdef) {
+    return _pyVisitor.attr("visitClassDefStart")(classdef.get());
+}
+
+void
+Visitor::visitClassDefEnd(const Slice::ClassDefPtr& classdef) {
+    _pyVisitor.attr("visitClassDefEnd")(classdef.get());
 }
 
 } // namespace SliceParser
 
 
+typedef std::vector<Slice::ClassDef*> ClassVect;
+
+/*
+ * Remove Ice smart pointers from class definitions
+ */
+ClassVect
+allBasesWrapp(Slice::ClassDef s) {
+    Slice::ClassList items = s.allBases();
+    ClassVect retval;
+
+    for (Slice::ClassList::iterator i = items.begin(); i != items.end(); i++) {
+	retval.push_back(i->get());
+    }
+
+    return retval;
+}
+
 using namespace boost::python;
 BOOST_PYTHON_MODULE(SliceParser) {
     class_<SliceParser::Parser>("Parser", init<std::string>())
         .def("accept", &SliceParser::Parser::accept)
+    ;
+
+    class_<Slice::Unit>("Unit", no_init)
+    ;
+
+    class_<Slice::Module>("Module", no_init)
+	.def("name", &Slice::Module::name)
+	.def("scope", &Slice::Module::scope)
+    ;
+
+    class_<ClassVect>("_ClassVect", no_init)
+	.def("__iter__", iterator< ClassVect >())
+	.def("__len__", &ClassVect::size)
+	// .def("__getitem__", &ClassVect::at)
+    ;
+
+    class_<Slice::ClassDef, Slice::ClassDef*>("ClassDef", no_init)
+	.def("name", &Slice::ClassDef::name)
+	.def("scope", &Slice::ClassDef::scope)
+	.def("allBases", allBasesWrapp)
     ;
 };
