@@ -66,13 +66,19 @@ Visitor::visitClassDefEnd(const Slice::ClassDefPtr& classdef) {
     _pyVisitor.attr("visitClassDefEnd")(classdef.get());
 }
 
+void
+Visitor::visitOperation(const Slice::OperationPtr& operation) {
+    _pyVisitor.attr("visitOperation")(operation.get());
+}
+
 } // namespace SliceParser
 
 
+using namespace boost::python;
 typedef std::vector<Slice::ClassDef*> ClassVect;
 
 /*
- * Remove Ice smart pointers from class definitions
+ * Remove Ice smart pointers from ClassDef
  */
 ClassVect
 allBasesWrapp(Slice::ClassDef s) {
@@ -86,13 +92,19 @@ allBasesWrapp(Slice::ClassDef s) {
     return retval;
 }
 
-using namespace boost::python;
+/*
+ * Remove Ice smart pointer from other Ptr
+ */
+template<class X>
+struct PtrConverter {
+    static PyObject* convert(::IceUtil::Handle<X> const& ptr) {
+        return incref(object( ptr.get()));
+    }
+};
+
 BOOST_PYTHON_MODULE(SliceParser) {
     class_<SliceParser::Parser>("Parser", init<std::string>())
         .def("accept", &SliceParser::Parser::accept)
-    ;
-
-    class_<Slice::Unit>("Unit", no_init)
     ;
 
     class_<Slice::Module>("Module", no_init)
@@ -100,10 +112,12 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("scope", &Slice::Module::scope)
     ;
 
+    typedef Slice::ClassDef* const& (ClassVect::*const_at)(unsigned int) const;
     class_<ClassVect>("_ClassVect", no_init)
 	.def("__iter__", iterator< ClassVect >())
 	.def("__len__", &ClassVect::size)
-	// .def("__getitem__", &ClassVect::at)
+	.def("__getitem__", const_at(&ClassVect::at),
+	     return_internal_reference<>())
     ;
 
     class_<Slice::ClassDef, Slice::ClassDef*>("ClassDef", no_init)
@@ -111,4 +125,23 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("scope", &Slice::ClassDef::scope)
 	.def("allBases", allBasesWrapp)
     ;
+
+    enum_<Slice::Operation::Mode>("OperationMode")
+	.value("Normal", Slice::Operation::Normal)
+	.value("Nonmutating", Slice::Operation::Nonmutating)
+	.value("Idempotent", Slice::Operation::Idempotent)
+	.export_values()
+    ;
+
+    class_<Slice::Type, Slice::Type*, boost::noncopyable>("Type", no_init)
+    ;
+
+    class_<Slice::Operation>("Operation", no_init)
+	.def("name", &Slice::Operation::name)
+	.def("mode", &Slice::Operation::mode)
+	.def("scope", &Slice::Operation::scope)
+	.def("returnType", &Slice::Operation::returnType)
+    ;
+
 };
+

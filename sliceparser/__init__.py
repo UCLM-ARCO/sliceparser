@@ -1,6 +1,8 @@
 # -*- mode: python; coding: utf-8 -*-
 
-from SliceParser import Parser, Unit, Module
+from SliceParser import (
+    Parser, Module, ClassDef, Operation, OperationMode
+)
 
 
 class Visitor:

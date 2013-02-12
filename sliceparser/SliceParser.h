@@ -13,11 +13,7 @@ namespace SliceParser {
 	void visitModuleEnd(const Slice::ModulePtr&);
 	bool visitClassDefStart(const Slice::ClassDefPtr&);
 	void visitClassDefEnd(const Slice::ClassDefPtr&);
-	// bool visitExceptionStart(const Slice::ExceptionPtr&);
-	// void visitExceptionEnd(const Slice::ExceptionPtr&);
-	// bool visitStructStart(const Slice::StructPtr&);
-	// void visitStructEnd(const Slice::StructPtr&);
-	// void visitOperation(const Slice::OperationPtr&);
+	void visitOperation(const Slice::OperationPtr&);
 	// void visitParamDecl(const Slice::ParamDeclPtr&);
 	// void visitDataMember(const Slice::DataMemberPtr&);
 	// void visitSequence(const Slice::SequencePtr&);

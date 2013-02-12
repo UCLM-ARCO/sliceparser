@@ -126,3 +126,41 @@ class TestVisitor_InterfaceInheritance(TestBase):
         assert_that(classdef.allBases(), has_length(1))
         assert_that(classdef.name(), is_("IfaceB"))
         assert_that(classdef.allBases()[0].name(), is_("IfaceA"))
+
+
+class TestVisitor_OperationMode(TestBase):
+    def test_operation_mode_normal_is_0(self):
+        assert_that(sp.OperationMode.Normal, is_(0))
+
+    def test_operation_mode_nonmutating_is_1(self):
+        assert_that(sp.OperationMode.Nonmutating, is_(1))
+
+    def test_operation_mode_idempotent_is_2(self):
+        assert_that(sp.OperationMode.Idempotent, is_(2))
+
+
+class TestVisitor_MinimalOperation(TestBase):
+    code = ("module A {                            \n"
+            "  interface Iface {                   \n"
+            "    void start();                     \n"
+            "  };                                  \n"
+            "};                                    \n")
+
+    def test_visit_operation(self):
+        assert_that(self.visitor.visitOperation, called().times(1))
+
+    def test_visited_operation_name_correct(self):
+        operation = self.visitor.visitOperation.calls[0].args[0]
+        assert_that(operation.name(), is_("start"))
+
+    def test_visited_operation_mode_correct(self):
+        operation = self.visitor.visitOperation.calls[0].args[0]
+        assert_that(operation.mode(), is_(sp.OperationMode.Normal))
+
+    def test_visited_operation_scope_correct(self):
+        operation = self.visitor.visitOperation.calls[0].args[0]
+        assert_that(operation.scope(), is_("::A::Iface::"))
+
+    def test_visited_operation_return_type_correct(self):
+        operation = self.visitor.visitOperation.calls[0].args[0]
+        print operation.returnType()
