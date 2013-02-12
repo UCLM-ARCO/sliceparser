@@ -139,6 +139,49 @@ class TestVisitor_OperationMode(TestBase):
         assert_that(sp.OperationMode.Idempotent, is_(2))
 
 
+class TestVisitor_Type(TestBase):
+    code = ("module A {                            \n"
+            "  interface Iface1 {                  \n"
+            "    int start();                      \n"
+            "  };                                  \n"
+            "  local interface Iface2 {            \n"
+            "    Iface2 getIface();                \n"
+            "  };                                  \n"
+            "};                                    \n")
+
+    def test_type_isLocal_when_non_local(self):
+        type = self.get_type()
+        assert_that(type.isLocal(), is_(False))
+
+    def test_type_isLocal_when_local(self):
+        type = self.get_type(1)
+        assert_that(type.isLocal(), is_(True))
+
+    def test_type_typeId_builtin_type(self):
+        type = self.get_type()
+        assert_that(type.typeId(), is_("int"))
+
+    def test_type_typeId_user_defined(self):
+        type = self.get_type(1)
+        assert_that(type.typeId(), is_("::A::Iface2"))
+
+    def test_type_usesClasses(self):
+        type = self.get_type()
+        assert_that(type.usesClasses(), is_(False))
+
+    def test_type_minWireSize(self):
+        type = self.get_type()
+        assert_that(type.minWireSize(), is_(4))
+
+    def test_type_isVariableLength(self):
+        type = self.get_type()
+        assert_that(type.isVariableLength(), is_(False))
+
+    def get_type(self, id=0):
+        operation = self.visitor.visitOperation.calls[id].args[0]
+        return operation.returnType()
+
+
 class TestVisitor_MinimalOperation(TestBase):
     code = ("module A {                            \n"
             "  interface Iface {                   \n"
@@ -150,17 +193,39 @@ class TestVisitor_MinimalOperation(TestBase):
         assert_that(self.visitor.visitOperation, called().times(1))
 
     def test_visited_operation_name_correct(self):
-        operation = self.visitor.visitOperation.calls[0].args[0]
+        operation = self.get_operation()
         assert_that(operation.name(), is_("start"))
 
     def test_visited_operation_mode_correct(self):
-        operation = self.visitor.visitOperation.calls[0].args[0]
+        operation = self.get_operation()
         assert_that(operation.mode(), is_(sp.OperationMode.Normal))
 
     def test_visited_operation_scope_correct(self):
-        operation = self.visitor.visitOperation.calls[0].args[0]
+        operation = self.get_operation()
         assert_that(operation.scope(), is_("::A::Iface::"))
 
     def test_visited_operation_return_type_correct(self):
+        operation = self.get_operation()
+        assert_that(operation.returnType(), is_(None))
+
+    def get_operation(self):
+        return self.visitor.visitOperation.calls[0].args[0]
+
+
+class TestVisitor_ComplexInterface(TestBase):
+    code = ('module A {                                        \n'
+            '  interface Iface1 {                              \n'
+            '    int method1();                                \n'
+            '    bool method2(bool param1);                    \n'
+            '    short method3(int param1, string param2);     \n'
+            '                                                  \n'
+            '    float method4(float param1, out int param2);  \n'
+            '    [\"deprecated\"] void method5();              \n'
+            '  };                                              \n'
+            '  local interface Iface2 {                        \n'
+            '  };                                              \n'
+            '};                                                \n')
+
+    def test_visited_operation_return_type_when_not_void(self):
         operation = self.visitor.visitOperation.calls[0].args[0]
-        print operation.returnType()
+        assert_that(operation.returnType(), is_(None))

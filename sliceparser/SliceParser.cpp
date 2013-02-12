@@ -93,16 +93,19 @@ allBasesWrapp(Slice::ClassDef s) {
 }
 
 /*
- * Remove Ice smart pointer from other Ptr
+ * Remove Ice smart pointer
  */
-template<class X>
+template<class T>
 struct PtrConverter {
-    static PyObject* convert(::IceUtil::Handle<X> const& ptr) {
-        return incref(object( ptr.get()));
+    static PyObject* convert(::IceUtil::Handle<T> const& ptr) {
+        return incref(object(boost::cref(ptr.get())).ptr());
     }
 };
 
 BOOST_PYTHON_MODULE(SliceParser) {
+
+    to_python_converter< Slice::TypePtr, PtrConverter<Slice::Type> >();
+
     class_<SliceParser::Parser>("Parser", init<std::string>())
         .def("accept", &SliceParser::Parser::accept)
     ;
@@ -133,7 +136,12 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.export_values()
     ;
 
-    class_<Slice::Type, Slice::Type*, boost::noncopyable>("Type", no_init)
+    class_<Slice::Type, boost::noncopyable>("Type", no_init)
+	.def("isLocal", &Slice::Type::isLocal)
+	.def("typeId", &Slice::Type::typeId)
+	.def("usesClasses", &Slice::Type::usesClasses)
+	.def("minWireSize", &Slice::Type::minWireSize)
+	.def("isVariableLength", &Slice::Type::isVariableLength)
     ;
 
     class_<Slice::Operation>("Operation", no_init)
