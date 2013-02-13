@@ -1,7 +1,8 @@
 # -*- mode: python; coding: utf-8 -*-
 
 from SliceParser import (
-    Parser, Module, ClassDef, Operation, OperationMode
+    Parser, Module, ClassDef, Operation, OperationMode,
+    ContainedType, returnTypeToString
 )
 
 

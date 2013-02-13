@@ -1,6 +1,7 @@
 /* -*- mode: c++; coding: utf-8 -*- */
 
 #include <Slice/Preprocessor.h>
+#include <Slice/CPlusPlusUtil.h>
 #include <boost/python.hpp>
 
 #include "SliceParser.h"
@@ -18,7 +19,7 @@ Parser::accept(py::object py_visitor) {
     VisitorPtr visitor(new Visitor(py_visitor));
 
     std::string path = "";
-    std::vector<std::string> args;
+    std::vector <std::string > args;
     Slice::PreprocessorPtr icepp =
 	Slice::Preprocessor::create(path, _filename, args);
 
@@ -31,11 +32,11 @@ Parser::accept(py::object py_visitor) {
     bool allowUnderscore = false;
     Slice::StringList defaultGlobalMetadata;
     Slice::UnitPtr unit = Slice::Unit::createUnit(
-	 ignRedefs,
-	 all,
-	 allowIcePrefix,
-	 allowUnderscore,
-	 defaultGlobalMetadata);
+	ignRedefs,
+	all,
+	allowIcePrefix,
+	allowUnderscore,
+	defaultGlobalMetadata);
 
     bool debug = false;
     unit->parse(_filename, cppHandle, debug);
@@ -75,68 +76,114 @@ Visitor::visitOperation(const Slice::OperationPtr& operation) {
 
 
 using namespace boost::python;
-typedef std::vector<Slice::ClassDef*> ClassVect;
 
 /*
- * Remove Ice smart pointers from ClassDef
+ * Remove Ice smart pointer for to_python conversion
  */
-ClassVect
-allBasesWrapp(Slice::ClassDef s) {
-    Slice::ClassList items = s.allBases();
-    ClassVect retval;
-
-    for (Slice::ClassList::iterator i = items.begin(); i != items.end(); i++) {
-	retval.push_back(i->get());
-    }
-
-    return retval;
-}
-
-/*
- * Remove Ice smart pointer
- */
-template<class T>
-struct PtrConverter {
-    static PyObject* convert(::IceUtil::Handle<T> const& ptr) {
-        return incref(object(boost::cref(ptr.get())).ptr());
+template< class T >
+struct RemovePtr {
+    static PyObject* convert(::IceUtil::Handle< T > const& handle) {
+        return incref(object(boost::cref(handle.get())).ptr());
     }
 };
 
+/*
+ * Common bindings for std::list types
+ */
+template < class T >
+void classList(std::string name) {
+    class_< T >(name.c_str(), no_init)
+	.def("__iter__", iterator< T >())
+	.def("__len__", &T::size)
+    ;
+}
+
+/*
+ * Append Ice smart pointer for from_python conversion
+ */
+bool
+ParamDecl_uses(const Slice::ParamDecl& self, Slice::Contained& contained) {
+    Slice::ContainedPtr container_ptr = Slice::ContainedPtr::dynamicCast(&contained);
+    container_ptr->__setNoDelete(true);
+    return self.uses(container_ptr);
+}
+
+/*
+ * Append Ice smart pointer for from_python conversion
+ * Add "thin wrappers" for default arguments
+ */
+std::string
+returnTypeToString_1(Slice::Type& type) {
+    Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
+    type_ptr->__setNoDelete(true);
+    return Slice::returnTypeToString(type_ptr);
+}
+
+std::string
+returnTypeToString_2(Slice::Type& type, Slice::StringList& meta_data) {
+    Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
+    type_ptr->__setNoDelete(true);
+    return Slice::returnTypeToString(type_ptr, meta_data);
+}
+
+std::string
+returnTypeToString_3(Slice::Type& type, Slice::StringList& meta_data, int type_ctx) {
+    Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
+    type_ptr->__setNoDelete(true);
+    return Slice::returnTypeToString(type_ptr, meta_data, type_ctx);
+}
+
 BOOST_PYTHON_MODULE(SliceParser) {
 
-    to_python_converter< Slice::TypePtr, PtrConverter<Slice::Type> >();
+    to_python_converter< Slice::ParamDeclPtr, RemovePtr< Slice::ParamDecl > >();
+    to_python_converter< Slice::ClassDefPtr, RemovePtr< Slice::ClassDef > >();
+    to_python_converter< Slice::TypePtr, RemovePtr< Slice::Type > >();
 
-    class_<SliceParser::Parser>("Parser", init<std::string>())
-        .def("accept", &SliceParser::Parser::accept)
-    ;
-
-    class_<Slice::Module>("Module", no_init)
-	.def("name", &Slice::Module::name)
-	.def("scope", &Slice::Module::scope)
-    ;
-
-    typedef Slice::ClassDef* const& (ClassVect::*const_at)(unsigned int) const;
-    class_<ClassVect>("_ClassVect", no_init)
-	.def("__iter__", iterator< ClassVect >())
-	.def("__len__", &ClassVect::size)
-	.def("__getitem__", const_at(&ClassVect::at),
-	     return_internal_reference<>())
-    ;
-
-    class_<Slice::ClassDef, Slice::ClassDef*>("ClassDef", no_init)
-	.def("name", &Slice::ClassDef::name)
-	.def("scope", &Slice::ClassDef::scope)
-	.def("allBases", allBasesWrapp)
-    ;
-
-    enum_<Slice::Operation::Mode>("OperationMode")
+    enum_< Slice::Operation::Mode >("OperationMode")
 	.value("Normal", Slice::Operation::Normal)
 	.value("Nonmutating", Slice::Operation::Nonmutating)
 	.value("Idempotent", Slice::Operation::Idempotent)
 	.export_values()
     ;
 
-    class_<Slice::Type, boost::noncopyable>("Type", no_init)
+    enum_< Slice::Contained::ContainedType >("ContainedType")
+	.value("ContainedTypeSequence", Slice::Contained::ContainedTypeSequence)
+        .value("ContainedTypeDictionary", Slice::Contained::ContainedTypeDictionary)
+        .value("ContainedTypeEnum", Slice::Contained::ContainedTypeEnum)
+        .value("ContainedTypeEnumerator", Slice::Contained::ContainedTypeEnumerator)
+        .value("ContainedTypeModule", Slice::Contained::ContainedTypeModule)
+        .value("ContainedTypeClass", Slice::Contained::ContainedTypeClass)
+        .value("ContainedTypeException", Slice::Contained::ContainedTypeException)
+        .value("ContainedTypeStruct", Slice::Contained::ContainedTypeStruct)
+        .value("ContainedTypeOperation", Slice::Contained::ContainedTypeOperation)
+        .value("ContainedTypeParamDecl", Slice::Contained::ContainedTypeParamDecl)
+        .value("ContainedTypeDataMember", Slice::Contained::ContainedTypeDataMember)
+        .value("ContainedTypeConstant", Slice::Contained::ContainedTypeConstant)
+	.export_values()
+    ;
+
+    classList< Slice::ClassList >("ClassList");
+    classList< Slice::StringList >("StringList");
+    classList< Slice::ParamDeclList >("ParamDeclList");
+
+    class_< SliceParser::Parser >("Parser", init< std::string >())
+        .def("accept", &SliceParser::Parser::accept)
+    ;
+
+    class_< Slice::Contained, boost::noncopyable >("Contained", no_init)
+	.def("name", &Slice::Contained::name)
+	.def("scope", &Slice::Contained::scope)
+	.def("getMetaData", &Slice::Contained::getMetaData)
+    ;
+
+    class_< Slice::Module, bases<Slice::Contained> >("Module", no_init)
+    ;
+
+    class_< Slice::ClassDef, bases<Slice::Contained> >("ClassDef", no_init)
+	.def("allBases", &Slice::ClassDef::allBases)
+    ;
+
+    class_< Slice::Type, boost::noncopyable >("Type", no_init)
 	.def("isLocal", &Slice::Type::isLocal)
 	.def("typeId", &Slice::Type::typeId)
 	.def("usesClasses", &Slice::Type::usesClasses)
@@ -144,12 +191,23 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("isVariableLength", &Slice::Type::isVariableLength)
     ;
 
-    class_<Slice::Operation>("Operation", no_init)
-	.def("name", &Slice::Operation::name)
+    class_< Slice::Operation, bases<Slice::Contained> >("Operation", no_init)
 	.def("mode", &Slice::Operation::mode)
-	.def("scope", &Slice::Operation::scope)
 	.def("returnType", &Slice::Operation::returnType)
+	.def("parameters", &Slice::Operation::parameters)
     ;
+
+    class_< Slice::ParamDecl, bases<Slice::Contained> >("ParamDecl", no_init)
+	.def("type", &Slice::ParamDecl::type)
+	.def("isOutParam", &Slice::ParamDecl::isOutParam)
+	.def("containedType", &Slice::ParamDecl::containedType)
+	.def("uses", &ParamDecl_uses)
+	.def("kindOf", &Slice::ParamDecl::kindOf)
+    ;
+
+    def("returnTypeToString", &returnTypeToString_1);
+    def("returnTypeToString", &returnTypeToString_2);
+    def("returnTypeToString", &returnTypeToString_3);
 
 };
 

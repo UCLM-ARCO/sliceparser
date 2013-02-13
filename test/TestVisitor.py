@@ -3,7 +3,7 @@
 from unittest import TestCase
 import tempfile
 from doublex import Spy, ANY_ARG, assert_that, called, is_
-from hamcrest import has_length
+from hamcrest import has_length, is_not
 
 import sliceparser as sp
 
@@ -125,7 +125,7 @@ class TestVisitor_InterfaceInheritance(TestBase):
         classdef = self.visitor.visitClassDefStart.calls[1].args[0]
         assert_that(classdef.allBases(), has_length(1))
         assert_that(classdef.name(), is_("IfaceB"))
-        assert_that(classdef.allBases()[0].name(), is_("IfaceA"))
+        assert_that(list(classdef.allBases())[0].name(), is_("IfaceA"))
 
 
 class TestVisitor_OperationMode(TestBase):
@@ -212,20 +212,121 @@ class TestVisitor_MinimalOperation(TestBase):
         return self.visitor.visitOperation.calls[0].args[0]
 
 
-class TestVisitor_ComplexInterface(TestBase):
+class TestVisitor_Operation_MetaData(TestBase):
+    code = ('module A {                                \n'
+            '  interface Iface {                       \n'
+            '    ["amd"] void method();                \n'
+            '    ["amd", "protected"] void method2();  \n'
+            '  };                                      \n'
+            '};                                        \n')
+
+    def test_operation_has_metadata(self):
+        meta_data = self.get_operation_metadata()
+        assert_that(len(meta_data), is_(1))
+
+    def test_operation_metadata_has_proper_items(self):
+        meta_data = self.get_operation_metadata(1)
+        assert_that(list(meta_data), is_(['amd', 'protected']))
+
+    def get_operation_metadata(self, opid=0):
+        operation = self.visitor.visitOperation.calls[opid].args[0]
+        return operation.getMetaData()
+
+
+class TestVisitor_Operation_Parameters(TestBase):
     code = ('module A {                                        \n'
-            '  interface Iface1 {                              \n'
-            '    int method1();                                \n'
-            '    bool method2(bool param1);                    \n'
-            '    short method3(int param1, string param2);     \n'
-            '                                                  \n'
-            '    float method4(float param1, out int param2);  \n'
-            '    [\"deprecated\"] void method5();              \n'
-            '  };                                              \n'
-            '  local interface Iface2 {                        \n'
+            '  interface Iface {                               \n'
+            '    void method1();                               \n'
+            '    void method2(bool param1, float param2);      \n'
+            '    void method3(Object* param1);                 \n'
+            '    void method4(Iface param1);                   \n'
             '  };                                              \n'
             '};                                                \n')
 
-    def test_visited_operation_return_type_when_not_void(self):
-        operation = self.visitor.visitOperation.calls[0].args[0]
-        assert_that(operation.returnType(), is_(None))
+    def test_operation_has_parameters(self):
+        parameters = self.get_operation_parameters()
+        assert_that(len(parameters), is_(0))
+
+    def test_operation_has_correct_number_of_parameters(self):
+        parameters = self.get_operation_parameters(1)
+        assert_that(len(parameters), is_(2))
+
+    def get_operation_parameters(self, opid=0):
+        operation = self.visitor.visitOperation.calls[opid].args[0]
+        return list(operation.parameters())
+
+
+class TestVisitor_ParamDecl(TestBase):
+    code = ('module A {                                        \n'
+            '  interface Iface {                               \n'
+            '    void method1(out bool param1);                \n'
+            '    void method2(Object* param1);                 \n'
+            '    void method3(Iface param1);                   \n'
+            '  };                                              \n'
+            '};                                                \n')
+
+    def test_paramdecl_name(self):
+        param = self.get_param_decl()
+        assert_that(param.name(), is_("param1"))
+
+    def test_paramdecl_getMetaData(self):
+        param = self.get_param_decl()
+        assert_that(list(param.getMetaData()), is_([]))
+
+    def test_paramdecl_type(self):
+        param = self.get_param_decl()
+        assert_that(param.type(), is_not(None))
+
+    def test_paramdecl_isOutParam(self):
+        param = self.get_param_decl()
+        assert_that(param.isOutParam(), is_(True))
+
+    def test_paramdecl_containedType(self):
+        param = self.get_param_decl()
+        assert_that(param.containedType(), is_(sp.ContainedType.ContainedTypeDataMember))
+
+    def test_paramdecl_uses__negative_result(self):
+        param = self.get_param_decl()
+        module = self.visitor.visitModuleStart.calls[0].args[0]
+        assert_that(param.uses(module), is_(False))
+
+    def test_paramdecl_uses__positive_result(self):
+        param = self.get_param_decl(2)
+        classdef = self.visitor.visitClassDefStart.calls[0].args[0]
+        assert_that(param.uses(classdef), is_(True))
+
+    def test_paramdecl_kindOf(self):
+        param = self.get_param_decl()
+        assert_that(param.kindOf(), is_("parameter declaration"))
+
+    def get_param_decl(self, opid=0):
+        operation = self.visitor.visitOperation.calls[opid].args[0]
+        return list(operation.parameters())[0]
+
+
+class TestVisitor_Functions(TestBase):
+    code = ('module A {                                        \n'
+            '  interface Iface1 {                              \n'
+            '    int method1();                                \n'
+            '  };                                              \n'
+            '  local interface Iface2 {                        \n'
+            '    Iface1 method1();                             \n'
+            '  };                                              \n'
+            '};                                                \n')
+
+    def test_returnTypeToString_without_metaData_or_typeCtx(self):
+        operation = self.visitor.visitOperation.calls[1].args[0]
+        type = operation.returnType()
+        assert_that(sp.returnTypeToString(type), is_("::A::Iface1Ptr"))
+
+    def test_returnTypeToString_without_metaData(self):
+        operation = self.visitor.visitOperation.calls[1].args[0]
+        type = operation.returnType()
+        meta_data = operation.getMetaData()
+        assert_that(sp.returnTypeToString(type, meta_data), is_("::A::Iface1Ptr"))
+
+    def test_returnTypeToString(self):
+        operation = self.visitor.visitOperation.calls[1].args[0]
+        type = operation.returnType()
+        meta_data = operation.getMetaData()
+        assert_that(sp.returnTypeToString(type, meta_data, 2), is_("::A::Iface1Ptr"))

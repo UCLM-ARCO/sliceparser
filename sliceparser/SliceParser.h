@@ -14,12 +14,6 @@ namespace SliceParser {
 	bool visitClassDefStart(const Slice::ClassDefPtr&);
 	void visitClassDefEnd(const Slice::ClassDefPtr&);
 	void visitOperation(const Slice::OperationPtr&);
-	// void visitParamDecl(const Slice::ParamDeclPtr&);
-	// void visitDataMember(const Slice::DataMemberPtr&);
-	// void visitSequence(const Slice::SequencePtr&);
-	// void visitDictionary(const Slice::DictionaryPtr&);
-	// void visitEnum(const Slice::EnumPtr&);
-	// void visitConst(const Slice::ConstPtr&);
 
     private:
 	boost::python::object _pyVisitor;
