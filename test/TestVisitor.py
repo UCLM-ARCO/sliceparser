@@ -3,7 +3,9 @@
 from unittest import TestCase
 import tempfile
 from doublex import Spy, ANY_ARG, assert_that, called, is_
+
 from hamcrest import has_length, is_not
+from hamcrest.library.object.hasproperty import has_property
 
 import sliceparser as sp
 
@@ -60,10 +62,12 @@ class TestVisitor_Simplest(TestBase):
 
 
 class TestVisitor_NestedModule(TestBase):
-    code = ("module A {    \n"
-            "  module B {  \n"
-            "  };          \n"
-            "};            \n")
+    code = '''
+            module A {
+              module B {
+              };
+            };
+            '''
 
     def test_visit_module_start(self):
         assert_that(self.visitor.visitModuleStart, called().times(2))
