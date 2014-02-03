@@ -113,24 +113,26 @@ ParamDecl_uses(const Slice::ParamDecl& self, Slice::Contained& contained) {
  * Add "thin wrappers" for default arguments
  */
 std::string
-returnTypeToString_1(Slice::Type& type) {
+returnTypeToString_1(Slice::Type& type, bool optional) {
     Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
     type_ptr->__setNoDelete(true);
-    return Slice::returnTypeToString(type_ptr);
+    return Slice::returnTypeToString(type_ptr, optional);
 }
 
 std::string
-returnTypeToString_2(Slice::Type& type, Slice::StringList& meta_data) {
+returnTypeToString_2(Slice::Type& type, bool optional, Slice::StringList& meta_data) {
     Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
     type_ptr->__setNoDelete(true);
-    return Slice::returnTypeToString(type_ptr, meta_data);
+    return Slice::returnTypeToString(type_ptr, optional, meta_data);
 }
 
 std::string
-returnTypeToString_3(Slice::Type& type, Slice::StringList& meta_data, int type_ctx) {
+returnTypeToString_3(Slice::Type& type, bool optional,
+		     Slice::StringList& meta_data, int type_ctx) {
+
     Slice::TypePtr type_ptr = Slice::TypePtr::dynamicCast(&type);
     type_ptr->__setNoDelete(true);
-    return Slice::returnTypeToString(type_ptr, meta_data, type_ctx);
+    return Slice::returnTypeToString(type_ptr, optional, meta_data, type_ctx);
 }
 
 BOOST_PYTHON_MODULE(SliceParser) {

@@ -1,0 +1,14 @@
+Source: sliceparser
+Section: devel
+Priority: optional
+Maintainer: Oscar Aceña Herrera <oscaracena@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), libboost-python-dev,
+ libzeroc-ice35-dev, python-dev
+Standards-Version: 3.9.5
+Homepage: https://bitbucket.org/arco_group/sliceparser
+
+Package: sliceparser
+Architecture: any
+Depends: ${misc:Depends}, libslice35
+Description: Python binding for Slice parser
+ This package provides Python bindings for ZeroC-Ice slice parser

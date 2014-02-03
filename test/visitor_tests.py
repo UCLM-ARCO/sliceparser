@@ -1,11 +1,9 @@
 # -*- mode: python; coding: utf-8 -*-
 
-from unittest import TestCase
 import tempfile
+from unittest import TestCase
 from doublex import Spy, ANY_ARG, assert_that, called, is_
-
 from hamcrest import has_length, is_not
-from hamcrest.library.object.hasproperty import has_property
 
 import sliceparser as sp
 
@@ -321,16 +319,16 @@ class TestVisitor_Functions(TestBase):
     def test_returnTypeToString_without_metaData_or_typeCtx(self):
         operation = self.visitor.visitOperation.calls[1].args[0]
         type = operation.returnType()
-        assert_that(sp.returnTypeToString(type), is_("::A::Iface1Ptr"))
+        assert_that(sp.returnTypeToString(type, False), is_("::A::Iface1Ptr"))
 
     def test_returnTypeToString_without_metaData(self):
         operation = self.visitor.visitOperation.calls[1].args[0]
         type = operation.returnType()
         meta_data = operation.getMetaData()
-        assert_that(sp.returnTypeToString(type, meta_data), is_("::A::Iface1Ptr"))
+        assert_that(sp.returnTypeToString(type, False, meta_data), is_("::A::Iface1Ptr"))
 
     def test_returnTypeToString(self):
         operation = self.visitor.visitOperation.calls[1].args[0]
-        type = operation.returnType()
+        type_ = operation.returnType()
         meta_data = operation.getMetaData()
-        assert_that(sp.returnTypeToString(type, meta_data, 2), is_("::A::Iface1Ptr"))
+        assert_that(sp.returnTypeToString(type_, False, meta_data, 2), is_("::A::Iface1Ptr"))
