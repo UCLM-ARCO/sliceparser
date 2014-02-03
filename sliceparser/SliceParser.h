@@ -24,10 +24,12 @@ namespace SliceParser {
     class Parser {
     public:
 	Parser(std::string filename);
+	void addArgument(std::string arg);
 	void accept(boost::python::object);
 
     private:
 	std::string _filename;
+	std::vector <std::string > _args;
     };
 
 }

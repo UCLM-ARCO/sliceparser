@@ -15,13 +15,17 @@ Parser::Parser(std::string filename) :
 }
 
 void
+Parser::addArgument(std::string arg) {
+    _args.push_back(arg);
+}
+
+void
 Parser::accept(py::object py_visitor) {
     VisitorPtr visitor(new Visitor(py_visitor));
 
     std::string path = "";
-    std::vector <std::string > args;
     Slice::PreprocessorPtr icepp =
-	Slice::Preprocessor::create(path, _filename, args);
+	Slice::Preprocessor::create(path, _filename, _args);
 
     bool keepComments = false;
     FILE* cppHandle = icepp->preprocess(keepComments);
@@ -169,6 +173,7 @@ BOOST_PYTHON_MODULE(SliceParser) {
     classList< Slice::ParamDeclList >("ParamDeclList");
 
     class_< SliceParser::Parser >("Parser", init< std::string >())
+	.def("addArgument", &SliceParser::Parser::addArgument)
         .def("accept", &SliceParser::Parser::accept)
     ;
 
