@@ -5,14 +5,22 @@ all:
 	cp $$(find build/ -name "*.so") sliceparser
 
 
+# FIXME: use distutils properly
+install: DST = $(DESTDIR)/usr/share/pyshared/sliceparser
+install:
+	install -d $(DST)
+	cp sliceparser/*.py $(DST)
+	cp sliceparser/*.so $(DST)
+
+
 .PHONY: test
 test: all
-	find test -name "*.py" | xargs nosetests -s
+	nosetests -s test/*_tests.py
 
 
 .PHONY: clean
 clean:
-	@for pat in "*.o" "*~" "*.pyc"; do \
+	@for pat in "*.so" "*.o" "*~" "*.pyc"; do \
 	    find . -name $$pat -print -delete; \
 	done
 	@$(RM) build -rf

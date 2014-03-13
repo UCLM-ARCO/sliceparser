@@ -3,15 +3,23 @@
 
 from distutils.core import setup, Extension
 
+
+def get_version():
+    with open('debian/changelog') as chlog:
+        return chlog.readline().split()[1][1:-1]
+
+
 sliceParser = Extension(
-    'SliceParser',
-    sources = ['sliceparser/SliceParser.cpp'],
-    libraries = ['boost_python', 'Slice', 'ec'],
+    name         = 'SliceParser',
+    sources      = ['sliceparser/SliceParser.cpp'],
+    libraries    = ['boost_python', 'Slice'],
 )
 
 setup(
-    name = 'SliceParser',
-    version = '1.0',
-    description = 'Slice parser library for Python',
-    ext_modules = [sliceParser],
+    name         = 'sliceparser',
+    version      = get_version(),
+    description  = 'Slice parser library for Python',
+
+    ext_modules  = [sliceParser],
+    packages     = ["sliceparser"],
 )

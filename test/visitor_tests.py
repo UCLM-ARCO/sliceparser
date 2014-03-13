@@ -5,7 +5,7 @@ import tempfile
 from doublex import Spy, ANY_ARG, assert_that, called, is_
 
 from hamcrest import has_length, is_not
-from hamcrest.library.object.hasproperty import has_property
+# from hamcrest.library.object.hasproperty import has_property
 
 import sliceparser as sp
 
@@ -34,6 +34,7 @@ class TestBase(TestCase):
 
     def setUp(self):
         with Spy(sp.Visitor) as spy:
+            spy.visitUnitStart(ANY_ARG).returns(True)
             spy.visitModuleStart(ANY_ARG).returns(True)
             spy.visitClassDefStart(ANY_ARG).returns(True)
             self.visitor = spy
@@ -149,7 +150,7 @@ class TestVisitor_Type(TestBase):
             "    int start();                      \n"
             "  };                                  \n"
             "  local interface Iface2 {            \n"
-            "    Iface2 getIface();                \n"
+            "    int start();                      \n"
             "  };                                  \n"
             "};                                    \n")
 
@@ -157,17 +158,9 @@ class TestVisitor_Type(TestBase):
         type = self.get_type()
         assert_that(type.isLocal(), is_(False))
 
-    def test_type_isLocal_when_local(self):
-        type = self.get_type(1)
-        assert_that(type.isLocal(), is_(True))
-
     def test_type_typeId_builtin_type(self):
         type = self.get_type()
         assert_that(type.typeId(), is_("int"))
-
-    def test_type_typeId_user_defined(self):
-        type = self.get_type(1)
-        assert_that(type.typeId(), is_("::A::Iface2"))
 
     def test_type_usesClasses(self):
         type = self.get_type()
