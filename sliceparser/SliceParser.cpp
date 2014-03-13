@@ -204,6 +204,8 @@ BOOST_PYTHON_MODULE(SliceParser) {
     to_python_converter< Slice::ParamDeclPtr, RemovePtr< Slice::ParamDecl > >();
     to_python_converter< Slice::ClassDefPtr, RemovePtr< Slice::ClassDef > >();
     to_python_converter< Slice::TypePtr, RemovePtr< Slice::Type > >();
+    to_python_converter< Slice::EnumeratorPtr, RemovePtr< Slice::Enumerator > >();
+    to_python_converter< Slice::DataMemberPtr, RemovePtr< Slice::DataMember > >();
 
     enum_< Slice::Operation::Mode >("OperationMode")
 	.value("Normal", Slice::Operation::Normal)
@@ -231,6 +233,8 @@ BOOST_PYTHON_MODULE(SliceParser) {
     classList< Slice::ClassList >("ClassList");
     classList< Slice::StringList >("StringList");
     classList< Slice::ParamDeclList >("ParamDeclList");
+    classList< Slice::EnumeratorList >("EnumeratorList");
+    classList< Slice::DataMemberList >("DataMemberList");
 
     class_< SliceParser::Parser >("Parser", init< std::string >())
         .def("accept", &SliceParser::Parser::accept)
@@ -248,11 +252,33 @@ BOOST_PYTHON_MODULE(SliceParser) {
     class_< Slice::Module, bases<Slice::Contained> >("Module", no_init)
     ;
 
+    class_< Slice::Enumerator, bases<Slice::Contained> >("Enumerator", no_init)
+    ;
+
+    class_< Slice::Enum >("Enum", no_init)
+	.def("getEnumerators", &Slice::Enum::getEnumerators)
+    ;
+
+    class_< Slice::Sequence, bases<Slice::Contained> >("Sequence", no_init)
+	.def("type", &Slice::Sequence::type)
+    ;
+
+    class_< Slice::DataMember, bases<Slice::Contained> >("DataMember", no_init)
+	.def("type", &Slice::DataMember::type)
+    ;
+
+    class_< Slice::Struct, bases<Slice::Contained> >("Struct", no_init)
+	.def("dataMembers", &Slice::Struct::dataMembers)
+    ;
+
     class_< Slice::ClassDecl >("ClassDecl", no_init)
     ;
 
     class_< Slice::ClassDef, bases<Slice::Contained> >("ClassDef", no_init)
 	.def("allBases", &Slice::ClassDef::allBases)
+    ;
+
+    class_< Slice::Exception, bases<Slice::Contained> >("Exception", no_init)
     ;
 
     class_< Slice::Type, boost::noncopyable >("Type", no_init)
