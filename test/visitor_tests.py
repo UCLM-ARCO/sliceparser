@@ -75,6 +75,10 @@ class TestVisitor_Enum(TestBase):
     def test_visit_enum(self):
         assert_that(self.visitor.visitEnum, called().times(1))
 
+    def test_get_enum_name(self):
+        enum = self.visitor.visitEnum.calls[0].args[0]
+        assert_that(enum.name(), is_("EnumName"))
+
     def test_could_access_to_enumerated_types(self):
         enum = self.visitor.visitEnum.calls[0].args[0]
         items = list(enum.getEnumerators())

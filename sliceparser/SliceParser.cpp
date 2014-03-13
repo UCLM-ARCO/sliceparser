@@ -255,7 +255,7 @@ BOOST_PYTHON_MODULE(SliceParser) {
     class_< Slice::Enumerator, bases<Slice::Contained> >("Enumerator", no_init)
     ;
 
-    class_< Slice::Enum >("Enum", no_init)
+    class_< Slice::Enum, bases<Slice::Contained> >("Enum", no_init)
 	.def("getEnumerators", &Slice::Enum::getEnumerators)
     ;
 
