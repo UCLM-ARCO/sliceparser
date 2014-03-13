@@ -246,6 +246,14 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("getMetaData", &Slice::Contained::getMetaData)
     ;
 
+    class_< Slice::Type, boost::noncopyable >("Type", no_init)
+	.def("isLocal", &Slice::Type::isLocal)
+	.def("typeId", &Slice::Type::typeId)
+	.def("usesClasses", &Slice::Type::usesClasses)
+	.def("minWireSize", &Slice::Type::minWireSize)
+	.def("isVariableLength", &Slice::Type::isVariableLength)
+    ;
+
     class_< Slice::Unit >("Unit", no_init)
     ;
 
@@ -267,8 +275,9 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("type", &Slice::DataMember::type)
     ;
 
-    class_< Slice::Struct, bases<Slice::Contained> >("Struct", no_init)
+    class_< Slice::Struct, bases<Slice::Type, Slice::Contained> >("Struct", no_init)
 	.def("dataMembers", &Slice::Struct::dataMembers)
+	.def("typeId", &Slice::Struct::typeId)
     ;
 
     class_< Slice::ClassDecl >("ClassDecl", no_init)
@@ -279,14 +288,6 @@ BOOST_PYTHON_MODULE(SliceParser) {
     ;
 
     class_< Slice::Exception, bases<Slice::Contained> >("Exception", no_init)
-    ;
-
-    class_< Slice::Type, boost::noncopyable >("Type", no_init)
-	.def("isLocal", &Slice::Type::isLocal)
-	.def("typeId", &Slice::Type::typeId)
-	.def("usesClasses", &Slice::Type::usesClasses)
-	.def("minWireSize", &Slice::Type::minWireSize)
-	.def("isVariableLength", &Slice::Type::isVariableLength)
     ;
 
     class_< Slice::Operation, bases<Slice::Contained> >("Operation", no_init)

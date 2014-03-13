@@ -121,6 +121,10 @@ class TestVisitor_Struct(TestBase):
         struct = self.visitor.visitStructStart.calls[0].args[0]
         assert_that(struct.name(), is_("StrA"))
 
+    def test_get_struct_typeid(self):
+        struct = self.visitor.visitStructStart.calls[0].args[0]
+        assert_that(struct.typeId(), is_("::A::StrA"))
+
     def test_get_struct_members(self):
         struct = self.visitor.visitStructStart.calls[0].args[0]
         members = list(struct.dataMembers())
