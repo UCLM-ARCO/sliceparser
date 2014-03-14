@@ -7,11 +7,23 @@ from SliceParser import (
 
 
 class Visitor:
+    def visitUnitStart(self, unit):
+        # Note: received a copy of parameter, don't use it after return
+        return True
+
+    def visitUnitEnd(self, unit):
+        # Note: received a copy of parameter, don't use it after return
+        pass
+
     def visitModuleStart(self, module):
         # Note: received a copy of parameter, don't use it after return
         return True
 
     def visitModuleEnd(self, module):
+        # Note: received a copy of parameter, don't use it after return
+        pass
+
+    def visitClassDecl(self, classdecl):
         # Note: received a copy of parameter, don't use it after return
         pass
 

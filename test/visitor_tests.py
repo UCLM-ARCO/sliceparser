@@ -32,8 +32,11 @@ class TestBase(TestCase):
 
     def setUp(self):
         with Spy(sp.Visitor) as spy:
+            spy.visitUnitStart(ANY_ARG).returns(True)
             spy.visitModuleStart(ANY_ARG).returns(True)
             spy.visitClassDefStart(ANY_ARG).returns(True)
+            spy.visitStructStart(ANY_ARG).returns(True)
+            spy.visitExceptionStart(ANY_ARG).returns(True)
             self.visitor = spy
 
         with TempFile(self.code, suffix=".ice") as src:
@@ -57,6 +60,91 @@ class TestVisitor_Simplest(TestBase):
     def test_visited_module_scope_correct(self):
         module = self.visitor.visitModuleStart.calls[0].args[0]
         assert_that(module.scope(), is_("::"))
+
+
+class TestVisitor_Enum(TestBase):
+    code = '''module A {
+                  enum EnumName {
+                      id1, id2, id3
+                  };
+              };
+    '''
+
+    def test_visit_enum(self):
+        assert_that(self.visitor.visitEnum, called().times(1))
+
+    def test_get_enum_name(self):
+        enum = self.visitor.visitEnum.calls[0].args[0]
+        assert_that(enum.name(), is_("EnumName"))
+
+    def test_could_access_to_enumerated_types(self):
+        enum = self.visitor.visitEnum.calls[0].args[0]
+        items = list(enum.getEnumerators())
+        for i in range(3):
+            assert_that(items[i].name(), is_("id" + str(i + 1)))
+
+
+class TestVisitor_Sequence(TestBase):
+    code = '''module A {
+                  sequence<byte> ByteSeq;
+              };
+    '''
+
+    def test_visit_sequence(self):
+        assert_that(self.visitor.visitSequence, called().times(1))
+
+    def test_get_sequence_type(self):
+        seq = self.visitor.visitSequence.calls[0].args[0]
+        assert_that(seq.type().typeId(), is_("byte"))
+
+    def test_get_sequence_name(self):
+        seq = self.visitor.visitSequence.calls[0].args[0]
+        assert_that(seq.name(), is_("ByteSeq"))
+
+
+class TestVisitor_Struct(TestBase):
+    code = '''module A {
+                  struct StrA {
+                      bool field1;
+                      short field2;
+                  };
+              };
+    '''
+
+    def test_visit_struct(self):
+        assert_that(self.visitor.visitStructStart, called().times(1))
+        assert_that(self.visitor.visitStructEnd, called().times(1))
+
+    def test_get_struct_name(self):
+        struct = self.visitor.visitStructStart.calls[0].args[0]
+        assert_that(struct.name(), is_("StrA"))
+
+    def test_get_struct_typeid(self):
+        struct = self.visitor.visitStructStart.calls[0].args[0]
+        assert_that(struct.typeId(), is_("::A::StrA"))
+
+    def test_get_struct_members(self):
+        struct = self.visitor.visitStructStart.calls[0].args[0]
+        members = list(struct.dataMembers())
+        assert_that(members[0].type().typeId(), is_("bool"))
+        assert_that(members[0].name(), is_("field1"))
+        assert_that(members[1].type().typeId(), is_("short"))
+        assert_that(members[1].name(), is_("field2"))
+
+
+class TestVisitor_Exception(TestBase):
+    code = '''module A {
+                  exception ExcepName {};
+             };
+            '''
+
+    def test_visit_exception(self):
+        assert_that(self.visitor.visitExceptionStart, called().times(1))
+        assert_that(self.visitor.visitExceptionEnd, called().times(1))
+
+    def test_get_exception_name(self):
+        ex = self.visitor.visitExceptionStart.calls[0].args[0]
+        assert_that(ex.name(), is_("ExcepName"))
 
 
 class TestVisitor_NestedModule(TestBase):
@@ -147,7 +235,7 @@ class TestVisitor_Type(TestBase):
             "    int start();                      \n"
             "  };                                  \n"
             "  local interface Iface2 {            \n"
-            "    Iface2 getIface();                \n"
+            "    int start();                      \n"
             "  };                                  \n"
             "};                                    \n")
 
@@ -155,17 +243,9 @@ class TestVisitor_Type(TestBase):
         type = self.get_type()
         assert_that(type.isLocal(), is_(False))
 
-    def test_type_isLocal_when_local(self):
-        type = self.get_type(1)
-        assert_that(type.isLocal(), is_(True))
-
     def test_type_typeId_builtin_type(self):
         type = self.get_type()
         assert_that(type.typeId(), is_("int"))
-
-    def test_type_typeId_user_defined(self):
-        type = self.get_type(1)
-        assert_that(type.typeId(), is_("::A::Iface2"))
 
     def test_type_usesClasses(self):
         type = self.get_type()

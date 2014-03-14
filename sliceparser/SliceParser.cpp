@@ -52,6 +52,16 @@ Visitor::Visitor(py::object pyVisitor) :
 }
 
 bool
+Visitor::visitUnitStart(const Slice::UnitPtr& unit) {
+    return _pyVisitor.attr("visitUnitStart")(unit.get());
+}
+
+void
+Visitor::visitUnitEnd(const Slice::UnitPtr& unit) {
+    _pyVisitor.attr("visitUnitEnd")(unit.get());
+}
+
+bool
 Visitor::visitModuleStart(const Slice::ModulePtr& module) {
     return _pyVisitor.attr("visitModuleStart")(module.get());
 }
@@ -59,6 +69,11 @@ Visitor::visitModuleStart(const Slice::ModulePtr& module) {
 void
 Visitor::visitModuleEnd(const Slice::ModulePtr& module) {
     _pyVisitor.attr("visitModuleEnd")(module.get());
+}
+
+void
+Visitor::visitClassDecl(const Slice::ClassDeclPtr& classdecl) {
+    _pyVisitor.attr("visitClassDecl")(classdecl.get());
 }
 
 bool
@@ -71,9 +86,59 @@ Visitor::visitClassDefEnd(const Slice::ClassDefPtr& classdef) {
     _pyVisitor.attr("visitClassDefEnd")(classdef.get());
 }
 
+bool
+Visitor::visitExceptionStart(const Slice::ExceptionPtr& exception) {
+    return _pyVisitor.attr("visitExceptionStart")(exception.get());
+}
+
+void
+Visitor::visitExceptionEnd(const Slice::ExceptionPtr& exception) {
+    _pyVisitor.attr("visitExceptionEnd")(exception.get());
+}
+
+bool
+Visitor::visitStructStart(const Slice::StructPtr& struct_) {
+    return _pyVisitor.attr("visitStructStart")(struct_.get());
+}
+
+void
+Visitor::visitStructEnd(const Slice::StructPtr& struct_) {
+    _pyVisitor.attr("visitStructEnd")(struct_.get());
+}
+
 void
 Visitor::visitOperation(const Slice::OperationPtr& operation) {
     _pyVisitor.attr("visitOperation")(operation.get());
+}
+
+void
+Visitor::visitParamDecl(const Slice::ParamDeclPtr& paramdecl) {
+    _pyVisitor.attr("visitParamDecl")(paramdecl.get());
+}
+
+void
+Visitor::visitDataMember(const Slice::DataMemberPtr& datamember) {
+    _pyVisitor.attr("visitDataMember")(datamember.get());
+}
+
+void
+Visitor::visitSequence(const Slice::SequencePtr& sequence) {
+    _pyVisitor.attr("visitSequence")(sequence.get());
+}
+
+void
+Visitor::visitDictionary(const Slice::DictionaryPtr& dictionary) {
+    _pyVisitor.attr("visitDictionary")(dictionary.get());
+}
+
+void
+Visitor::visitEnum(const Slice::EnumPtr& enum_) {
+    _pyVisitor.attr("visitEnum")(enum_.get());
+}
+
+void
+Visitor::visitConst(const Slice::ConstPtr& const_) {
+    _pyVisitor.attr("visitConst")(const_.get());
 }
 
 } // namespace SliceParser
@@ -141,9 +206,12 @@ returnTypeToString_3(Slice::Type& type, bool optional,
 
 BOOST_PYTHON_MODULE(SliceParser) {
 
+    to_python_converter< Slice::UnitPtr, RemovePtr< Slice::Unit > >();
     to_python_converter< Slice::ParamDeclPtr, RemovePtr< Slice::ParamDecl > >();
     to_python_converter< Slice::ClassDefPtr, RemovePtr< Slice::ClassDef > >();
     to_python_converter< Slice::TypePtr, RemovePtr< Slice::Type > >();
+    to_python_converter< Slice::EnumeratorPtr, RemovePtr< Slice::Enumerator > >();
+    to_python_converter< Slice::DataMemberPtr, RemovePtr< Slice::DataMember > >();
 
     enum_< Slice::Operation::Mode >("OperationMode")
 	.value("Normal", Slice::Operation::Normal)
@@ -171,6 +239,8 @@ BOOST_PYTHON_MODULE(SliceParser) {
     classList< Slice::ClassList >("ClassList");
     classList< Slice::StringList >("StringList");
     classList< Slice::ParamDeclList >("ParamDeclList");
+    classList< Slice::EnumeratorList >("EnumeratorList");
+    classList< Slice::DataMemberList >("DataMemberList");
 
     class_< SliceParser::Parser >("Parser", init< std::string >())
 	.def("addArgument", &SliceParser::Parser::addArgument)
@@ -183,19 +253,48 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("getMetaData", &Slice::Contained::getMetaData)
     ;
 
-    class_< Slice::Module, bases<Slice::Contained> >("Module", no_init)
-    ;
-
-    class_< Slice::ClassDef, bases<Slice::Contained> >("ClassDef", no_init)
-	.def("allBases", &Slice::ClassDef::allBases)
-    ;
-
     class_< Slice::Type, boost::noncopyable >("Type", no_init)
 	.def("isLocal", &Slice::Type::isLocal)
 	.def("typeId", &Slice::Type::typeId)
 	.def("usesClasses", &Slice::Type::usesClasses)
 	.def("minWireSize", &Slice::Type::minWireSize)
 	.def("isVariableLength", &Slice::Type::isVariableLength)
+    ;
+
+    class_< Slice::Unit >("Unit", no_init)
+    ;
+
+    class_< Slice::Module, bases<Slice::Contained> >("Module", no_init)
+    ;
+
+    class_< Slice::Enumerator, bases<Slice::Contained> >("Enumerator", no_init)
+    ;
+
+    class_< Slice::Enum, bases<Slice::Contained> >("Enum", no_init)
+	.def("getEnumerators", &Slice::Enum::getEnumerators)
+    ;
+
+    class_< Slice::Sequence, bases<Slice::Contained> >("Sequence", no_init)
+	.def("type", &Slice::Sequence::type)
+    ;
+
+    class_< Slice::DataMember, bases<Slice::Contained> >("DataMember", no_init)
+	.def("type", &Slice::DataMember::type)
+    ;
+
+    class_< Slice::Struct, bases<Slice::Type, Slice::Contained> >("Struct", no_init)
+	.def("dataMembers", &Slice::Struct::dataMembers)
+	.def("typeId", &Slice::Struct::typeId)
+    ;
+
+    class_< Slice::ClassDecl >("ClassDecl", no_init)
+    ;
+
+    class_< Slice::ClassDef, bases<Slice::Contained> >("ClassDef", no_init)
+	.def("allBases", &Slice::ClassDef::allBases)
+    ;
+
+    class_< Slice::Exception, bases<Slice::Contained> >("Exception", no_init)
     ;
 
     class_< Slice::Operation, bases<Slice::Contained> >("Operation", no_init)
