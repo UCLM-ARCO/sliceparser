@@ -77,6 +77,10 @@ class TestVisitor_Enum(TestBase):
         enum = self.visitor.visitEnum.calls[0].args[0]
         assert_that(enum.name(), is_("EnumName"))
 
+    def test_get_enum_typeId(self):
+        enum = self.visitor.visitEnum.calls[0].args[0]
+        assert_that(enum.typeId(), is_("::A::EnumName"))
+
     def test_could_access_to_enumerated_types(self):
         enum = self.visitor.visitEnum.calls[0].args[0]
         items = list(enum.getEnumerators())
@@ -96,6 +100,10 @@ class TestVisitor_Sequence(TestBase):
     def test_get_sequence_type(self):
         seq = self.visitor.visitSequence.calls[0].args[0]
         assert_that(seq.type().typeId(), is_("byte"))
+
+    def test_get_sequence_typeId(self):
+        seq = self.visitor.visitSequence.calls[0].args[0]
+        assert_that(seq.typeId(), is_("::A::ByteSeq"))
 
     def test_get_sequence_name(self):
         seq = self.visitor.visitSequence.calls[0].args[0]
