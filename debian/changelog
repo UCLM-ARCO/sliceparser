@@ -1,3 +1,9 @@
+sliceparser (3.5.1.2-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 23 Apr 2014 09:33:16 +0000
+
 sliceparser (3.5.1.1-1) unstable; urgency=low
 
   * Initial release
