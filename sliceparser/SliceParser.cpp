@@ -278,6 +278,11 @@ BOOST_PYTHON_MODULE(SliceParser) {
 	.def("type", &Slice::Sequence::type)
     ;
 
+    class_< Slice::Dictionary, bases<Slice::Type, Slice::Contained> >("Dictionary", no_init)
+	.def("keyType", &Slice::Dictionary::keyType)
+	.def("valueType", &Slice::Dictionary::valueType)
+    ;
+
     class_< Slice::DataMember, bases<Slice::Contained> >("DataMember", no_init)
 	.def("type", &Slice::DataMember::type)
     ;

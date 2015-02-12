@@ -110,6 +110,32 @@ class TestVisitor_Sequence(TestBase):
         assert_that(seq.name(), is_("ByteSeq"))
 
 
+class TestVisitor_Dictionary(TestBase):
+    code = '''module A {
+                  dictionary<string, byte> ByteDict;
+              };
+    '''
+
+    def test_visit_dictionary(self):
+        assert_that(self.visitor.visitDictionary, called().times(1))
+
+    def test_get_dictionary_key_type(self):
+        dic = self.visitor.visitDictionary.calls[0].args[0]
+        assert_that(dic.keyType().typeId(), is_("string"))
+
+    def test_get_dictionary_value_type(self):
+        dic = self.visitor.visitDictionary.calls[0].args[0]
+        assert_that(dic.valueType().typeId(), is_("byte"))
+
+    def test_get_dictionary_typeId(self):
+        dic = self.visitor.visitDictionary.calls[0].args[0]
+        assert_that(dic.typeId(), is_("::A::ByteDict"))
+
+    def test_get_dictionary_name(self):
+        dic = self.visitor.visitDictionary.calls[0].args[0]
+        assert_that(dic.name(), is_("ByteDict"))
+
+
 class TestVisitor_Struct(TestBase):
     code = '''module A {
                   struct StrA {
