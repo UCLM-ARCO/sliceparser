@@ -15,7 +15,7 @@ install:
 
 .PHONY: test
 test: all
-	find test -name "*.py" | xargs nosetests -s
+	-find test -name "*.py" | xargs nosetests -s
 
 
 .PHONY: clean
@@ -24,4 +24,3 @@ clean:
 	    find . -name $$pat -print -delete; \
 	done
 	@$(RM) build -rf
-

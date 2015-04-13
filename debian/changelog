@@ -1,3 +1,9 @@
+sliceparser (3.5.1.5-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 13 Apr 2015 15:21:00 +0200
+
 sliceparser (3.5.1.4-1) unstable; urgency=low
 
   * New release: support for visiting dictionaries
