@@ -1,16 +1,6 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
 all:
-	python setup.py build
-	cp $$(find build/ -name "*.so") sliceparser
-
-
-# FIXME: use distutils properly
-install: DST = $(DESTDIR)/usr/share/pyshared/sliceparser
-install:
-	install -d $(DST)
-	cp sliceparser/*.py $(DST)
-	cp sliceparser/*.so $(DST)
 
 
 .PHONY: test
