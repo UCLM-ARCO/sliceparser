@@ -1,3 +1,2 @@
 deb:libboost-python-dev
-deb:libzeroc-ice35-dev
-deb:libslice35
+deb:libzeroc-ice-dev
