@@ -152,7 +152,8 @@ using namespace boost::python;
 template< class T >
 struct RemovePtr {
     static PyObject* convert(::IceUtil::Handle< T > const& handle) {
-        return incref(object(boost::cref(handle.get())).ptr());
+      const T* r1 = handle.get();
+      return incref(object(boost::cref(r1)).ptr());
     }
 };
 
@@ -320,4 +321,3 @@ BOOST_PYTHON_MODULE(SliceParser) {
     def("returnTypeToString", &returnTypeToString_3);
 
 };
-
