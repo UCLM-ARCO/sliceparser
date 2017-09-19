@@ -43,6 +43,7 @@ namespace SliceParser {
     private:
 	std::string _filename;
 	std::vector <std::string > _args;
+        bool _allowIcePrefix = false;
     };
 
 }

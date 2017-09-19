@@ -16,7 +16,10 @@ Parser::Parser(std::string filename) :
 
 void
 Parser::addArgument(std::string arg) {
-    _args.push_back(arg);
+    if (arg == "--ice")
+        _allowIcePrefix = true;
+    else
+      _args.push_back(arg);
 }
 
 void
@@ -32,13 +35,12 @@ Parser::accept(py::object py_visitor) {
 
     bool ignRedefs = false;
     bool all = false;
-    bool allowIcePrefix = false;
     bool allowUnderscore = false;
     Slice::StringList defaultGlobalMetadata;
     Slice::UnitPtr unit = Slice::Unit::createUnit(
 	ignRedefs,
 	all,
-	allowIcePrefix,
+	_allowIcePrefix,
 	allowUnderscore,
 	defaultGlobalMetadata);
 

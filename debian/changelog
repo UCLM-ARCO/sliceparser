@@ -1,3 +1,9 @@
+sliceparser (3.20170919-1) unstable; urgency=low
+
+  * New release, parse '--ice' option
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 19 Sep 2017 09:30:13 +0200
+
 sliceparser (3.20170914-1) unstable; urgency=low
 
   * New release, change to libboost 1.62
