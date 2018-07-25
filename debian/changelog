@@ -1,3 +1,9 @@
+sliceparser (3.20180725-1) unstable; urgency=low
+
+  * New release, port to 3.7
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 25 Jul 2018 14:17:35 +0200
+
 sliceparser (3.20170919-1) unstable; urgency=low
 
   * New release, parse '--ice' option

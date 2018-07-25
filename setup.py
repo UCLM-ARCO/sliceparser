@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- mode: python; coding: utf-8 -*-
 
 from distutils.core import setup, Extension
@@ -11,8 +11,13 @@ def get_version():
 
 sliceParser = Extension(
     name         = 'SliceParser',
-    sources      = ['sliceparser/SliceParser.cpp'],
-    libraries    = ['boost_python', 'Slice'],
+    sources      = [
+        'sliceparser/SliceParser.cpp',
+        
+    ],
+    libraries    = ['boost_python'],
+    include_dirs = ['sliceparser'],
+
 )
 
 setup(
