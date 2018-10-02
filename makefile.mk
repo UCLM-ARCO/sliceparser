@@ -10,7 +10,7 @@ all:
 
 .PHONY: test
 test: all
-	-find test -name "*.py" | xargs nosetests3 -s
+	-find test -name "*.py" | xargs nosetests -s
 
 
 .PHONY: clean

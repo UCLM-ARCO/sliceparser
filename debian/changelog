@@ -1,3 +1,9 @@
+sliceparser (3.20181002-1) unstable; urgency=low
+
+  * New release, add '--underscore' option
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 02 Oct 2018 13:46:33 +0200
+
 sliceparser (3.20180725-1) unstable; urgency=low
 
   * New release, port to 3.7

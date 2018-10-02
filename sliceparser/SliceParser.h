@@ -44,6 +44,7 @@ namespace SliceParser {
 	std::string _filename;
 	std::vector <std::string > _args;
         bool _allowIcePrefix = false;
+	bool _allowUnderscore = false;
     };
 
 }

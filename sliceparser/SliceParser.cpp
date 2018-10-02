@@ -18,6 +18,8 @@ void
 Parser::addArgument(std::string arg) {
     if (arg == "--ice")
         _allowIcePrefix = true;
+    else if (arg == "--underscore")
+	_allowUnderscore = true;
     else
       _args.push_back(arg);
 }
@@ -35,13 +37,12 @@ Parser::accept(py::object py_visitor) {
 
     bool ignRedefs = false;
     bool all = false;
-    bool allowUnderscore = false;
     Slice::StringList defaultGlobalMetadata;
     Slice::UnitPtr unit = Slice::Unit::createUnit(
 	ignRedefs,
 	all,
 	_allowIcePrefix,
-	allowUnderscore,
+	_allowUnderscore,
 	defaultGlobalMetadata);
 
     bool debug = false;
